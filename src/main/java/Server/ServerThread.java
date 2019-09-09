@@ -97,12 +97,15 @@ public class ServerThread implements Runnable {
             while (true) {
                 out.println("SUBMITNAME");
 //                String[] returnedSurnomMachinePort = connectHandler(in.nextLine()).split("~");
-                System.out.println("in.nextLine()" + in.nextLine());
                 String[] returnedSurnomMachinePort = in.nextLine().split("~");
 
                 name = returnedSurnomMachinePort[0];
                 machine = returnedSurnomMachinePort[1];
                 port = returnedSurnomMachinePort[2];
+
+                System.out.println("name" + name);
+                System.out.println("machine" + machine);
+                System.out.println("port" + port);
 
                 if (name == null) {
                     return;

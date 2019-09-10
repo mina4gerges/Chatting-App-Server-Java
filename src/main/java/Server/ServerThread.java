@@ -3,6 +3,7 @@ package Server;
 import java.io.IOException;
 import java.io.PrintWriter;
 import static java.lang.Integer.parseInt;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -36,8 +37,12 @@ public class ServerThread implements Runnable {
      * called from the server's main method, so this has to be as short as
      * possible.
      */
-    public ServerThread(Socket socket) {
-        this.socket = socket;
+//    public ServerThread(Socket socket) throws IOException {
+    public ServerThread() throws IOException {
+//        this.socket = socket;
+        try (ServerSocket listener = new ServerSocket(59001)) {
+            this.socket = listener.accept();
+        }
     }
 
     /**

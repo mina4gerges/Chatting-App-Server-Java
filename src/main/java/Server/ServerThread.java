@@ -1,13 +1,16 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package Server;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import static java.lang.Integer.parseInt;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import java.awt.event.ActionEvent;
+import static java.lang.System.exit;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 /**
  *
@@ -15,161 +18,63 @@ import java.util.Set;
  */
 public class ServerThread implements Runnable {
 
-    // All client names, so we can check for duplicates upon registration.
-    private static Set<String> names = new HashSet<>();
+    JTextField textField;
+    JTextArea messageArea;
+    JFrame frame;
+    ClientThread serverThread;
+    Thread thread;
 
-    // The set of all the print writers for all the clients, used for broadcast.
-    private static Set<PrintWriter> writers = new HashSet<>();
-
-    /**
-     * The client handler task.
-     */
-    private String name;
-    private String machine;
-    private String port;
-    private Socket socket;
-    private Scanner in;
-    private PrintWriter out;
-
-    /**
-     * Constructs a handler thread, squirreling away the socket. All the
-     * interesting work is done in the run method. Remember the constructor is
-     * called from the server's main method, so this has to be as short as
-     * possible.
-     */
-//    public ServerThread(Socket socket) throws IOException {
-    public ServerThread() throws IOException {
-//        this.socket = socket;
-        try (ServerSocket listener = new ServerSocket(59001)) {
-            this.socket = listener.accept();
-        }
+    public ServerThread(JTextField textField, JTextArea messageArea, JFrame frame, ClientThread serverThread, Thread thread) {
+        this.textField = textField;
+        this.messageArea = messageArea;
+        this.frame = frame;
+        this.serverThread = serverThread;
+        this.thread = thread;
     }
 
-    /**
-     * Services this thread's client by repeatedly requesting a screen name
-     * until a unique one has been submitted, then acknowledges the name and
-     * registers the output stream for the client in a global set, then
-     * repeatedly gets inputs and broadcasts them.
-     */
-    public static String connectHandler(String sendValue) {//function to split a string to surnom, machine and port
-        String surnom = "Invalid surnom";
-        String machine = "Invalid Machine";
-        int port = 0;
-
-        String msgStartSubString = "_connect <";
-        String machineAndPortString = null;
-        int indexMachineStart;
-        int indexMachineEnd = 0;
-        String start = "<";
-        String end = ">";
-        if (!sendValue.isEmpty() && sendValue.toLowerCase().startsWith(msgStartSubString)) {
-            int indexNameStart = sendValue.toLowerCase().indexOf(msgStartSubString) + msgStartSubString.length();
-            int indexNameEnd = sendValue.toLowerCase().indexOf(end);
-            if (indexNameStart != -1 && indexNameEnd != -1) {
-                surnom = sendValue.substring(indexNameStart, indexNameEnd);
-            }
-            if (!surnom.toLowerCase().equals("invalid surnom")) {
-                machineAndPortString = sendValue.substring(indexNameEnd + 1).trim();
-                indexMachineStart = machineAndPortString.toLowerCase().indexOf(start) + 1;
-                indexMachineEnd = machineAndPortString.toLowerCase().indexOf(end);
-                if (indexMachineStart != -1 && indexMachineEnd != -1) {
-                    machine = machineAndPortString.substring(indexMachineStart, indexMachineEnd);
-                }
-            }
-            if (!machine.toLowerCase().equals("invalid machine")) {
-                String portString = machineAndPortString.substring(indexMachineEnd + 1).trim();
-                int indexPortStart = portString.toLowerCase().indexOf(start) + 1;
-                int indexPortEnd = portString.toLowerCase().indexOf(end);
-                if (indexPortStart != -1 && indexPortEnd != -1) {
-                    port = parseInt(portString.substring(indexPortStart, indexPortEnd));
-                }
-            }
-        }
-        return surnom + "~" + machine + "~" + port;
-    }
-
+    @Override
     public void run() {
-        try {
-            in = new Scanner(socket.getInputStream());
-            out = new PrintWriter(socket.getOutputStream(), true);
+        // Send on enter then clear to prepare for next message
+        textField.addActionListener((ActionEvent e) -> {
+            String serverMsg = textField.getText();
+            if (!serverMsg.equals("") && serverMsg != null) {
+                if (serverMsg.toLowerCase().trim().equals("_who")) {
+                    messageArea.append("Server : " + serverThread.getClients("server") + ". \n");
+                } else if (serverMsg.toLowerCase().trim().startsWith("_kill")) {
+                    JTextField surnomField = new JTextField(5);
 
-            // Keep requesting a name until we get a unique one.
-            while (true) {
-                out.println("SUBMITNAME");
-//                String[] returnedSurnomMachinePort = connectHandler(in.nextLine()).split("~");
-                String[] returnedSurnomMachinePort = in.nextLine().split("~");
+                    Object[] inputFields = {
+                        "Surnom :", surnomField
+                    };
 
-                name = returnedSurnomMachinePort[0];
-                machine = returnedSurnomMachinePort[1];
-                port = returnedSurnomMachinePort[2];
-
-                System.out.println("name " + name);
-                System.out.println("machine " + machine);
-                System.out.println("port " + port);
-
-                if (name == null) {
-                    return;
-                }
-                synchronized (names) {//synchronize name bcz --> do not allow 2 user with same name in the same time to add it in names
-                    if (name != "" && !names.contains(name)) {
-                        names.add(name);
-                        break;
+                    String surnom = serverMsg.substring(5);
+                    if (!surnom.equals("")) {
+                        surnomField.setText(surnom);
                     }
-                }
-            }
 
-            // Now that a successful name has been chosen, add the socket's print writer
-            // to the set of all writers so this client can receive broadcast messages.
-            // But BEFORE THAT, let everyone else know that the new person has joined!
-            out.println("NAMEACCEPTED " + name);
-            for (PrintWriter writer : writers) {
-                writer.println("MESSAGE " + name + " has joined");
-            }
-            writers.add(out);
+                    int option = JOptionPane.showConfirmDialog(//open confirm modal
+                            frame, //parent component
+                            inputFields,//panel
+                            "Please Enter a User Name",//title
+                            JOptionPane.OK_CANCEL_OPTION
+                    );
 
-            // Accept messages from this client and broadcast them.
-            while (true) {
-                String input = in.nextLine();
-                if (input.toLowerCase().startsWith("_quit")) {
-                    return;
-                }
-                if (input.toLowerCase().equals("_who")) {
-                    int count = 0;
-                    String test = names.size() > 1
-                            ? "The users are (" + (names.size() - 1) + ") : "
-                            : "The user is : ";
-                    out.println("MESSAGE " + test);
-                    for (String userName : names) {
-                        if (!userName.toLowerCase().equals(name)) {
-                            count++;
-                            out.println("MESSAGE " + count + " : " + userName + " Is Connected");
-                        }
+                    if (option == JOptionPane.OK_OPTION) {//if user clicks on OK
+                        surnom = surnomField.getText();
+                        thread.stop();
+                        messageArea.append("Server : (_kill command) " + surnom + " is disconnected by the server. \n");
+                    } else {//if user clicks on cancel
+                        messageArea.append("Server : (_kill command) has been cancelled. \n");
                     }
-                    out.println("MESSAGE " + "End of WHO");
-                }
-                if (!input.toLowerCase().equals("_who")) {
-                    for (PrintWriter writer : writers) {
-                        writer.println("MESSAGE " + name + ": " + input);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-        } finally {
-            if (out != null) {
-                writers.remove(out);
-            }
-            if (name != null) {
-                System.out.println(name + " is leaving");
-                names.remove(name);
-                for (PrintWriter writer : writers) {
-                    writer.println("MESSAGE " + name + " has left");
+
+                } else if (serverMsg.toLowerCase().trim().equals("_shutdown")) {
+                    messageArea.append("Server : " + serverMsg + ". \n");
+                    exit(0);
+                } else {
+                    messageArea.append("Server : " + serverMsg + " (Invalid Input). \n");
                 }
             }
-            try {
-                socket.close();
-            } catch (IOException e) {
-            }
-        }
+            textField.setText("");
+        });
     }
 }

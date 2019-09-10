@@ -105,7 +105,7 @@ public class ServerThread implements Runnable {
                 if (name == null) {
                     return;
                 }
-                synchronized (names) {
+                synchronized (names) {//synchronize name bcz --> do not allow 2 user with same name in the same time to add it in names
                     if (name != "" && !names.contains(name)) {
                         names.add(name);
                         break;

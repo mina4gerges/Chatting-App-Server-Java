@@ -1,6 +1,7 @@
 package Server;
 
 import java.net.ServerSocket;
+import java.util.Scanner;
 
 /**
  * A multithreaded chat room server. When a client connects the server requests
@@ -17,6 +18,8 @@ public class ServerTCP {
 //        ExecutorService pool = Executors.newFixedThreadPool(500); //another method to use thread (ExecutorService specify number of users)
         try (ServerSocket listener = new ServerSocket(59001)) {//every new user needs a new thread
             while (true) {
+                Scanner myObj = new Scanner(System.in);
+                System.out.println("server :" + myObj);
                 ServerThread serverThread = new ServerThread(listener.accept());
                 Thread thread = new Thread(serverThread);
                 thread.start(); //start the thread

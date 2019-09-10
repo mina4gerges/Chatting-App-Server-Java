@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Server;
 
 import java.io.IOException;
@@ -51,7 +46,7 @@ public class ServerThread implements Runnable {
      * registers the output stream for the client in a global set, then
      * repeatedly gets inputs and broadcasts them.
      */
-    public static String connectHandler(String sendValue) {
+    public static String connectHandler(String sendValue) {//function to split a string to surnom, machine and port
         String surnom = "Invalid surnom";
         String machine = "Invalid Machine";
         int port = 0;
@@ -103,9 +98,9 @@ public class ServerThread implements Runnable {
                 machine = returnedSurnomMachinePort[1];
                 port = returnedSurnomMachinePort[2];
 
-                System.out.println("name" + name);
-                System.out.println("machine" + machine);
-                System.out.println("port" + port);
+                System.out.println("name " + name);
+                System.out.println("machine " + machine);
+                System.out.println("port " + port);
 
                 if (name == null) {
                     return;

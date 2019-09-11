@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import static java.lang.Integer.parseInt;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -29,7 +29,8 @@ public class ClientThread implements Runnable {
     private static Set<PrintWriter> writers = new HashSet<>();
 
     // The set of all the Socket for all the clients, used for broadcast.
-    private static ArrayList<Socket> sockets = new ArrayList<>();
+//    private static ArrayList<Socket> sockets = new ArrayList<>();
+    private static HashMap<String, Socket> sockets = new HashMap<String, Socket>();
 
     /**
      * The client handler task.
@@ -119,21 +120,20 @@ public class ClientThread implements Runnable {
         return finalResult;
     }
 
-    public void Kill(String nom) {
-        int count = 0;
-        for (String name : names) {
-            count++;
-            if (nom.toLowerCase().trim().equals(name.toLowerCase().trim())) {
-                break;
-            }
-        }
-        System.out.println("count" + count);
+    public String Kill(String nom) {
+        String resultMsg = "";
         try {
-            sockets.get(count - 1).close();
-            sockets.remove(count - 1);
+            if (sockets.containsKey(nom.toLowerCase().trim())) {
+                sockets.get(nom.toLowerCase().trim()).close();
+                sockets.remove(nom);
+            } else {
+                resultMsg = "User Not Found";
+            }
         } catch (IOException ex) {
-            System.out.println(ex);
+            resultMsg = ex.getMessage();
+            ex.printStackTrace();
         }
+        return resultMsg;
     }
 
     @Override
@@ -158,7 +158,8 @@ public class ClientThread implements Runnable {
                 synchronized (names) {//synchronize name bcz --> do not allow 2 user with same name in the same time to add it in names
                     if (!name.equals("") && !names.contains(name)) {
                         names.add(name);
-                        sockets.add(socket);
+//                        sockets.add(socket);
+                        sockets.put(name.toLowerCase().trim(), socket);
                         break;
                     }
                 }

@@ -60,8 +60,16 @@ public class ServerThread implements Runnable {
 
                     if (option == JOptionPane.OK_OPTION) {//if user clicks on OK
                         surnom = surnomField.getText();
-                        clientThread.Kill(surnom);
-                        messageArea.append("Server : (_kill command) " + surnom + " is disconnected by the server. \n");
+                        String reultMsg = clientThread.Kill(surnom);
+                        if (reultMsg.equals("")) {
+                            messageArea.append("Server : (_kill command) " + surnom + " has been disconnected by the server. \n");
+                        } else {
+                            JOptionPane.showMessageDialog(frame,
+                                    reultMsg,
+                                    "Error",
+                                    JOptionPane.ERROR_MESSAGE
+                            );
+                        }
                     } else {//if user clicks on cancel
                         messageArea.append("Server : (_kill command) has been cancelled. \n");
                     }

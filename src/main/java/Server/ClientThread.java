@@ -103,20 +103,32 @@ public class ClientThread implements Runnable {
         //source if from server call this function or the client
         int nbreUsers = names.size();
         int count = 0;
-        String nbreUsersMsg = nbreUsers > 1
-                ? "The users that are connected (" + (names.size() - 1) + ") : "
-                : "The user that is connected : ";
-        String finalResult = source.equals("client") ? "MESSAGE (_who command). " : " (_who command). ";
-        finalResult += nbreUsersMsg;
-        for (String userName : names) {
-            count++;
-            if (source.equals("client") && !userName.toLowerCase().equals(name)) {
-                finalResult += userName + (count < nbreUsers - 1 ? ", " : "");
-            } else if (source.equals("server")) {
+        String finalResult = "";
+        String nbreUsersMsg = "";
+        count++;
+        if (source.equals("client")) {
+            nbreUsersMsg = nbreUsers - 1 > 1
+                    ? "The users that are connected (" + (nbreUsers - 1) + ") : "
+                    : "The user that is connected : ";
+            finalResult = "MESSAGE (_who command). ";
+            finalResult += nbreUsersMsg;
+            for (String userName : names) {
+                if (nbreUsers == 1) {
+                    finalResult += " is only you .";
+                } else if (!userName.toLowerCase().equals(name)) {
+                    finalResult += userName + (count < nbreUsers - 1 ? ", " : ".");
+                }
+            }
+        } else if (source.equals("server")) {
+            nbreUsersMsg = nbreUsers > 1
+                    ? "The users that are connected (" + (nbreUsers) + ") : "
+                    : "The user that is connected : ";
+            finalResult = " (_who command). ";
+            finalResult += nbreUsersMsg;
+            for (String userName : names) {
                 finalResult += userName + (count < nbreUsers ? ", " : "");
             }
         }
-        finalResult += ".";
         return finalResult;
     }
 

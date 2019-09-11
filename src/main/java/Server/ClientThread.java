@@ -29,7 +29,6 @@ public class ClientThread implements Runnable {
     private static Set<PrintWriter> writers = new HashSet<>();
 
     // The set of all the Socket for all the clients, used for broadcast.
-//    private static ArrayList<Socket> sockets = new ArrayList<>();
     private static HashMap<String, Socket> sockets = new HashMap<String, Socket>();
 
     /**
@@ -168,11 +167,12 @@ public class ClientThread implements Runnable {
                     return;
                 }
                 synchronized (names) {//synchronize name bcz --> do not allow 2 user with same name in the same time to add it in names
-                    if (!name.equals("") && !names.contains(name)) {
-                        names.add(name);
-//                        sockets.add(socket);
+                    if (!name.equals("") && !names.contains(name.toLowerCase().trim())) {
+                        names.add(name.toLowerCase().trim());
                         sockets.put(name.toLowerCase().trim(), socket);
                         break;
+                    } else if (names.contains(name.toLowerCase().trim())) {
+                        out.println("ERROR User Already Exist");
                     }
                 }
             }

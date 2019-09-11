@@ -21,15 +21,14 @@ public class ServerThread implements Runnable {
     JTextField textField;
     JTextArea messageArea;
     JFrame frame;
-    ClientThread serverThread;
+    ClientThread clientThread;
     Thread thread;
 
-    public ServerThread(JTextField textField, JTextArea messageArea, JFrame frame, ClientThread serverThread, Thread thread) {
+    public ServerThread(JTextField textField, JTextArea messageArea, JFrame frame, ClientThread clientThread) {
         this.textField = textField;
         this.messageArea = messageArea;
         this.frame = frame;
-        this.serverThread = serverThread;
-        this.thread = thread;
+        this.clientThread = clientThread;
     }
 
     @Override
@@ -39,7 +38,7 @@ public class ServerThread implements Runnable {
             String serverMsg = textField.getText();
             if (!serverMsg.equals("") && serverMsg != null) {
                 if (serverMsg.toLowerCase().trim().equals("_who")) {
-                    messageArea.append("Server : " + serverThread.getClients("server") + ". \n");
+                    messageArea.append("Server : " + clientThread.getClients("server") + ". \n");
                 } else if (serverMsg.toLowerCase().trim().startsWith("_kill")) {
                     JTextField surnomField = new JTextField(5);
 
@@ -61,7 +60,7 @@ public class ServerThread implements Runnable {
 
                     if (option == JOptionPane.OK_OPTION) {//if user clicks on OK
                         surnom = surnomField.getText();
-                        thread.stop();
+                        clientThread.Kill(surnom);
                         messageArea.append("Server : (_kill command) " + surnom + " is disconnected by the server. \n");
                     } else {//if user clicks on cancel
                         messageArea.append("Server : (_kill command) has been cancelled. \n");

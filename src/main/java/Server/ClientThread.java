@@ -10,9 +10,12 @@ import java.io.PrintWriter;
 import static java.lang.Integer.parseInt;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTextArea;
 
 /**
@@ -26,6 +29,9 @@ public class ClientThread implements Runnable {
 
     // The set of all the print writers for all the clients, used for broadcast.
     private static Set<PrintWriter> writers = new HashSet<>();
+
+    // The set of all the Socket for all the clients, used for broadcast.
+    private static ArrayList<Socket> sockets = new ArrayList<>();
 
     /**
      * The client handler task.
@@ -57,7 +63,7 @@ public class ClientThread implements Runnable {
      * registers the output stream for the client in a global set, then
      * repeatedly gets inputs and broadcasts them.
      */
-    public static String connectHandler(String sendValue) {//function to split a string to surnom, machine and port
+    public static String connectHandler(String sendValue) {//NOT USED FOR NOW. Function to split a string to surnom, machine and port
         String surnom = "Invalid surnom";
         String machine = "Invalid Machine";
         int port = 0;
@@ -115,6 +121,23 @@ public class ClientThread implements Runnable {
         return finalResult;
     }
 
+    public void Kill(String nom) {
+        int count = 0;
+        for (String name : names) {
+            count++;
+            if (nom.toLowerCase().trim().equals(name.toLowerCase().trim())) {
+                break;
+            }
+        }
+        System.out.println("count" + count);
+        try {
+            sockets.remove(count - 1);
+            sockets.get(count - 1).close();
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
+    }
+
     @Override
     public void run() {
         try {
@@ -137,6 +160,7 @@ public class ClientThread implements Runnable {
                 synchronized (names) {//synchronize name bcz --> do not allow 2 user with same name in the same time to add it in names
                     if (!name.equals("") && !names.contains(name)) {
                         names.add(name);
+                        sockets.add(socket);
                         break;
                     }
                 }
@@ -160,7 +184,7 @@ public class ClientThread implements Runnable {
                 }
                 if (input.toLowerCase().equals("_who")) {
                     String test = getClients("client");
-                    messageArea.append(name + " :" + getClients("server") + " \n"); //server panel
+                    messageArea.append(name + " :" + getClients("server") + ". \n"); //server panel
                     out.println(test);
                 }
                 if (!input.toLowerCase().equals("_who") && input != null) {
@@ -176,7 +200,7 @@ public class ClientThread implements Runnable {
                 writers.remove(out);
             }
             if (name != null) {
-                messageArea.append(name + " is leaving. \n");//server panel
+                messageArea.append(name + " has left. \n");//server panel
                 names.remove(name);
                 writers.forEach((writer) -> {
                     writer.println("MESSAGE " + name + " has left");

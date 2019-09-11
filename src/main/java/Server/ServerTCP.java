@@ -47,7 +47,7 @@ public class ServerTCP {
             thread.start(); //start the thread
 
             if (count == 1) {
-                ServerThread serverThread = new ServerThread(textField, messageArea, frame, clientThread, thread);
+                ServerThread serverThread = new ServerThread(textField, messageArea, frame, clientThread);
                 Thread thread1 = new Thread(serverThread);
                 thread1.start(); //start the thread
             }

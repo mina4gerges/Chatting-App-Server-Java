@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JTextArea;
 
 /**
@@ -131,8 +129,8 @@ public class ClientThread implements Runnable {
         }
         System.out.println("count" + count);
         try {
-            sockets.remove(count - 1);
             sockets.get(count - 1).close();
+            sockets.remove(count - 1);
         } catch (IOException ex) {
             System.out.println(ex);
         }
